@@ -4,7 +4,69 @@ using namespace std;
 
 using ll = long long;
 
-using pnt = complex<int>;
+struct pnt
+{
+	int x, y;
+
+	constexpr explicit pnt(int x = 0, int y = 0) : x(x), y(y)
+	{}
+
+	[[nodiscard]] int real() const
+	{
+		return x;
+	}
+
+	[[nodiscard]] int imag() const
+	{
+		return y;
+	}
+
+	void real(int val)
+	{
+		x = val;
+	}
+
+	void imag(int val)
+	{
+		y = val;
+	}
+
+	pnt operator*(int val) const
+	{
+		return pnt{x * val, y * val};
+	}
+
+	pnt operator+(const pnt &rhs) const
+	{
+		return pnt{x + rhs.x, y + rhs.y};
+	}
+
+	constexpr pnt &operator+=(const pnt &rhs)
+	{
+		x += rhs.x;
+		y += rhs.y;
+
+		return *this;
+	}
+
+	pnt operator-(const pnt &rhs) const
+	{
+		return pnt{x - rhs.x, y - rhs.y};
+	}
+
+	constexpr pnt &operator-=(const pnt &rhs)
+	{
+		x -= rhs.x;
+		y -= rhs.y;
+
+		return *this;
+	}
+
+	pnt operator-() const
+	{
+		return pnt{-x, -y};
+	}
+};
 
 ll operator&(const pnt &a, const pnt &b)
 {
@@ -67,7 +129,7 @@ struct problem
 };
 
 constexpr array dx = {0, 0, -1, 1}, dy = {1, -1, 0, 0};
-constexpr array<pnt, 4> dpnt = {pnt{0, 1}, {0, -1}, {-1, 0}, {1, 0}};
+constexpr array<pnt, 4> dpnt = {pnt{0, 1}, pnt{0, -1}, pnt{-1, 0}, pnt{1, 0}};
 constexpr array<string_view, 8> action_names = {"AccUp", "AccDown", "AccLeft", "AccRight", "Float", "LoadCarrots",
                                                 "LoadGift", "DeliverGift"};
 
