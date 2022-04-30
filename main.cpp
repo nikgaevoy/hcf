@@ -42,10 +42,8 @@ struct problem
 		who.reserve(g);
 		gifts.resize(g);
 
-		for (auto &it: l)
-			cin >> it;
-		for (auto &it: a)
-			cin >> it;
+		for (int i = 0; i < w; i++)
+			cin >> l[i] >> a[i];
 
 		for (int i = 0; i < g; i++)
 		{
