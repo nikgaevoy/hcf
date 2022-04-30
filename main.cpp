@@ -65,11 +65,34 @@ struct Problem
 };
 
 constexpr array dx = {0, 0, -1, 1}, dy = {1, -1, 0, 0};
+constexpr array<string_view, 8> action_names = {"AccUp", "AccDown", "AccLeft", "AccRight", "Float", "LoadCarrots",
+                                                "LoadGift", "DeliverGift"};
 
-enum moves
+enum action
 {
-	AccUp = 0, AccDown = 1, AccLeft = 2, AccRight = 3, Float, LoadCarrots, LoadGift, DeliverGift
+	AccUp = 0, AccDown = 1, AccLeft = 2, AccRight = 3, Float = 4, LoadCarrots = 5, LoadGift = 6, DeliverGift = 7
 };
+
+struct Solution
+{
+	vector<pair<action, int>> moves;
+
+	void write(Problem &prb, ostream &cout = std::cout)
+	{
+		cout << moves.size() << endl;
+
+		for (auto [act, val]: moves)
+		{
+			cout << action_names[act] << ' ';
+
+			if (act == LoadGift || act == DeliverGift)
+				cout << prb[names[val]] << endl;
+			else
+				cout << val << endl;
+		}
+	}
+};
+
 
 int main()
 {
