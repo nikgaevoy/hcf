@@ -87,10 +87,6 @@ ld manhattan_dist(const Point& a, const Point& b) {
 	return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
-ld delivery_score(Point cur_pos, Point delivery_pos, ll score, ll wt) {
-	return score * 1.0 / (wt * manhattan_dist(cur_pos, delivery_pos));
-}
-
 void naive_move(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_left, Point& start_pos, const Point& end_pos, ll accel = 100) {
 	if (start_pos.x + accel <= end_pos.x) {
 		commands.emplace_back("AccRight", accel);
@@ -217,6 +213,18 @@ ll move_carrot_cost(Point start_pos, Point end_pos, ll accel) {
 	return -carrots;
 }
 
+ll move_time_cost(Point start_pos, Point end_pos, ll accel) {
+	ll carrots = 0;
+	ll time_left = 0;
+	vector<pair<string, int>> commands;
+	naive_move(commands, time_left, carrots, start_pos, end_pos, accel);
+	return -time_left;
+}
+
+ld delivery_score(Point cur_pos, Point delivery_pos, ll score, ll wt, ll accel) {
+	return score * 1.0 / (wt * move_time_cost(cur_pos, delivery_pos, accel));
+}
+
 void solve(string in_file, string out_file, ll sleight_weight, ll max_accel, ll carrot_quota) {
 	ifstream fin(in_file);
 	ofstream fout(out_file);
@@ -259,9 +267,9 @@ void solve(string in_file, string out_file, ll sleight_weight, ll max_accel, ll 
 			int best_delivery = -1;
 			ld best_delivery_score = -1;
 			for (int i = 0; i < G; i++) {
-				if (!delivered[i] && wt[i] + move_carrot_cost(pos, loc[i], max_accel) <= free_wt && delivery_score(pos, loc[i], score[i], wt[i]) > best_delivery_score) {
+				if (!delivered[i] && wt[i] + move_carrot_cost(pos, loc[i], max_accel) <= free_wt && delivery_score(pos, loc[i], score[i], wt[i], max_accel) > best_delivery_score) {
 					best_delivery = i;
-					best_delivery_score = delivery_score(pos, loc[i], score[i], wt[i]);
+					best_delivery_score = delivery_score(pos, loc[i], score[i], wt[i], max_accel);
 				}
 			}
 			if (best_delivery == -1) break;
