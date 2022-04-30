@@ -113,6 +113,7 @@ struct interactor
 	pnt pos, vel;
 	int weight = 0, carrots = 0;
 	ll score = 0;
+	int cur_time = 0;
 
 	explicit interactor(problem &prb) : prb(prb), gss(prb.gifts.size(), Unloaded)
 	{}
@@ -121,6 +122,13 @@ struct interactor
 	{
 		slv.moves.emplace_back(AccLeft, val);
 		vel += dpnt[AccLeft] * val;
+		if (carrots <= 0)
+			throw runtime_error("No carrots");
+#ifndef NO_SPEED_CHECKS
+		if (auto wh = lower_bound(prb.l.begin(), prb.l.end(), weight);
+				wh == prb.l.end() || val > prb.a[wh - prb.l.begin()])
+			throw runtime_error("Too fast");
+#endif
 		carrots--;
 		weight--;
 	}
@@ -129,6 +137,13 @@ struct interactor
 	{
 		slv.moves.emplace_back(AccRight, val);
 		vel += dpnt[AccRight] * val;
+		if (carrots <= 0)
+			throw runtime_error("No carrots");
+#ifndef NO_SPEED_CHECKS
+		if (auto wh = lower_bound(prb.l.begin(), prb.l.end(), weight);
+				wh == prb.l.end() || val > prb.a[wh - prb.l.begin()])
+			throw runtime_error("Too fast");
+#endif
 		carrots--;
 		weight--;
 	}
@@ -137,6 +152,13 @@ struct interactor
 	{
 		slv.moves.emplace_back(AccUp, val);
 		vel += dpnt[AccUp] * val;
+		if (carrots <= 0)
+			throw runtime_error("No carrots");
+#ifndef NO_SPEED_CHECKS
+		if (auto wh = lower_bound(prb.l.begin(), prb.l.end(), weight);
+				wh == prb.l.end() || val > prb.a[wh - prb.l.begin()])
+			throw runtime_error("Too fast");
+#endif
 		carrots--;
 		weight--;
 	}
@@ -145,8 +167,31 @@ struct interactor
 	{
 		slv.moves.emplace_back(AccDown, val);
 		vel += dpnt[AccDown] * val;
+		if (carrots <= 0)
+			throw runtime_error("No carrots");
+#ifndef NO_SPEED_CHECKS
+		if (auto wh = lower_bound(prb.l.begin(), prb.l.end(), weight);
+				wh == prb.l.end() || val > prb.a[wh - prb.l.begin()])
+			throw runtime_error("Too fast");
+#endif
 		carrots--;
 		weight--;
+	}
+
+	void acc_x(int val)
+	{
+		if (val < 0)
+			acc_left(-val);
+		else
+			acc_right(val);
+	}
+
+	void acc_y(int val)
+	{
+		if (val < 0)
+			acc_down(-val);
+		else
+			acc_up(val);
 	}
 
 	void load_carrots(int val)
@@ -169,6 +214,10 @@ struct interactor
 	{
 		slv.moves.emplace_back(Float, time);
 		pos += vel * time;
+		cur_time += time;
+
+		if (cur_time > prb.tl)
+			throw runtime_error("TL");
 	}
 
 	void deliver_gift(int id)
@@ -182,7 +231,7 @@ struct interactor
 		gss[id] = Delivered;
 	}
 
-	ll get_score() const
+	[[nodiscard]] ll get_score() const
 	{
 		return score;
 	}
