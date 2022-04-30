@@ -59,8 +59,6 @@ struct problem
 
 			gifts[i] = {i, score, weight, pnt{x, y}};
 		}
-
-		assert(cin.eof());
 	}
 
 
@@ -299,7 +297,7 @@ struct interactor
 	{
 		if (gss[id] != Loaded)
 			throw runtime_error("Gift deliver fail");
-		if (prb.check_distance(prb.gifts[id].pos, pos))
+		if (!prb.check_distance(prb.gifts[id].pos, pos))
 			throw runtime_error("Distance to delivery fail");
 		slv.moves.emplace_back(DeliverGift, id);
 		weight -= prb.gifts[id].weight;
@@ -319,11 +317,20 @@ struct interactor
 };
 
 
+constexpr array file_names = {"a_an_example.in.txt", "b_better_hurry.in.txt", "c_carousel.in.txt",
+                              "d_decorated_houses.in.txt", "e_excellent_weather.in.txt", "f_festive_flyover.in.txt"};
+
+
 int main()
 {
-	ifstream ex("../a_an_example.in.txt");
+	ifstream ex(string("../") + file_names[3]), out("../output.txt");
 
 	problem prb(ex);
+	solution slv(prb, out);
+
+	interactor inter(prb, slv);
+
+	cout << inter.get_score() << endl;
 
 	return 0;
 }
