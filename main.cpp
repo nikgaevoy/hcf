@@ -379,6 +379,15 @@ struct interactor
 };
 
 
+ll solve(istream &cin = std::cin, ostream &cout = std::cout)
+{
+	problem prb(cin);
+	interactor inter(prb);
+
+
+}
+
+
 constexpr array file_names = {"a_an_example.in.txt", "b_better_hurry.in.txt", "c_carousel.in.txt",
                               "d_decorated_houses.in.txt", "e_excellent_weather.in.txt", "f_festive_flyover.in.txt"};
 
