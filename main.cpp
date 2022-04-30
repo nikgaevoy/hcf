@@ -118,24 +118,32 @@ struct interactor
 	{
 		slv.moves.emplace_back(AccLeft, val);
 		vel += dpnt[AccLeft] * val;
+		carrots--;
+		weight--;
 	}
 
 	void acc_right(int val)
 	{
 		slv.moves.emplace_back(AccRight, val);
 		vel += dpnt[AccRight] * val;
+		carrots--;
+		weight--;
 	}
 
 	void acc_up(int val)
 	{
 		slv.moves.emplace_back(AccUp, val);
 		vel += dpnt[AccUp] * val;
+		carrots--;
+		weight--;
 	}
 
 	void acc_down(int val)
 	{
 		slv.moves.emplace_back(AccDown, val);
 		vel += dpnt[AccDown] * val;
+		carrots--;
+		weight--;
 	}
 
 	void load_carrots(int val)
@@ -174,6 +182,11 @@ struct interactor
 	ll get_score() const
 	{
 		return score;
+	}
+
+	void write(ostream &cout = std::cout)
+	{
+		slv.write(prb, cout);
 	}
 };
 
