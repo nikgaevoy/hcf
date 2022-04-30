@@ -87,8 +87,61 @@ ld manhattan_dist(const Point& a, const Point& b) {
 	return abs(a.x - b.x) + abs(a.y - b.y);
 }
 
+void naive_move_coord(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_left, ll start_coord, ll end_coord, string move_right, string move_left, ll accel = 100) {
+	if (start_coord > end_coord) naive_move_coord(commands, time_left, carrots_left, end_coord, start_coord, move_left, move_right, accel);
+	if (start_coord == end_coord) return;
+	if (end_coord - start_coord > 9 * accel) {
+		ll dist_sqrt = 0;
+		while (end_coord - start_coord >= dist_sqrt * dist_sqrt * accel) dist_sqrt++;
+		dist_sqrt--;
+		for (int i = 0; i < dist_sqrt; i++) {
+			commands.emplace_back(move_right, accel);
+			commands.emplace_back("Float", 1);
+			carrots_left -= 1;
+			time_left -= 1;
+		}
+		for (int i = 0; i < dist_sqrt; i++) {
+			commands.emplace_back(move_left, accel);
+			commands.emplace_back("Float", 1);
+			carrots_left -= 1;
+			time_left -= 1;
+		}
+		start_coord += dist_sqrt * dist_sqrt * accel;
+	}
+	if (start_coord + accel <= end_coord) {
+		commands.emplace_back(move_right, accel);
+		commands.emplace_back("Float", (end_coord - start_coord) / accel);
+		time_left -= (end_coord - start_coord) / accel;
+		carrots_left -= 1;
+		start_coord += ((end_coord - start_coord) / accel) * accel;
+		commands.emplace_back(move_left, accel - (end_coord - start_coord));
+		commands.emplace_back("Float", 1);
+		time_left -= 1;
+		carrots_left -= 1;
+		if (start_coord != end_coord) {
+			commands.emplace_back(move_left, end_coord - start_coord);
+			commands.emplace_back("Float", 1);
+			time_left -= 1;
+			carrots_left -= 1;
+		}
+		start_coord = end_coord;
+	}
+	if (start_coord < end_coord) {
+		commands.emplace_back(move_right, end_coord - start_coord);
+		commands.emplace_back("Float", 1);
+		commands.emplace_back(move_left, end_coord - start_coord);
+		commands.emplace_back("Float", 1);
+		time_left -= 2;
+		carrots_left -= 2;
+		start_coord = end_coord;
+	}
+}
+
 void naive_move(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_left, Point& start_pos, const Point& end_pos, ll accel = 100) {
-	if (start_pos.x + accel <= end_pos.x) {
+	naive_move_coord(commands, time_left, carrots_left, start_pos.x, end_pos.x, "AccRight", "AccLeft", accel);
+	naive_move_coord(commands, time_left, carrots_left, start_pos.y, end_pos.y, "AccUp", "AccDown", accel);
+	start_pos = end_pos;
+	/*	if (start_pos.x + accel <= end_pos.x) {
 		commands.emplace_back("AccRight", accel);
 		commands.emplace_back("Float", (end_pos.x - start_pos.x) / accel);
 		time_left -= (end_pos.x - start_pos.x) / accel;
@@ -202,7 +255,7 @@ void naive_move(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_
 		time_left -= 2;
 		carrots_left -= 2;
 		start_pos.y = end_pos.y;
-	}
+	}*/
 }
 
 ll move_carrot_cost(Point start_pos, Point end_pos, ll accel) {
@@ -303,7 +356,7 @@ void solve(string in_file, string out_file, ll sleight_weight, ll max_accel, ll 
 			commands.push_back(c);
 		}
 
-		if (current_carrots < 0) cout << "Not enough carrots!" << endl;
+		if (current_carrots < 0) logout << "Not enough carrots!" << endl;
 
 	}
 
@@ -317,14 +370,47 @@ void solve(string in_file, string out_file, ll sleight_weight, ll max_accel, ll 
 }
 
 
+void analyze(string in_file, string out_file) {
+	ifstream fin(in_file);
+	ofstream fout(out_file);
+
+	ll T, D, W, G;
+	fin >> T >> D >> W >> G;
+
+	AccelerationRanges accel;
+
+	for (int i = 0; i < W; i++) {
+		ll w, s;
+		fin >> w >> s;
+		accel.insert_range(w, s);
+	}
+
+	vector<string> names(G);
+	vector<ll> score(G);
+	vector<ll> wt(G);
+	vector<Point> loc(G);
+
+	for (int i = 0; i < G; i++) {
+		fin >> names[i] >> score[i] >> wt[i] >> loc[i];
+	}
+
+	for (int i = 0; i < G; i++) {
+		if (loc[i].x > 0 && loc[i].y > 0) {
+			fout << score[i] << '\t' << 1.1 * loc[i].x - loc[i].y << endl;
+		}
+	}
+}
+
 
 int main() {
-	//solve("../a_an_example.in.txt", "a_semenar.txt", 8, 15, 5);
-	//solve("../b_better_hurry.in.txt", "b_semenar.txt", 2000, 20, 10);
-	solve("../c_carousel.in.txt", "c_semenar.txt", 10000, 4, 10);
-	solve("../d_decorated_houses.in.txt", "d_semenar.txt", 1000, 100, 10);
-	solve("../e_excellent_weather.in.txt", "e_semenar.txt", 16000, 10, 10);
-	solve("../f_festive_flyover.in.txt", "f_semenar.txt", 10000, 4, 10);
+	//analyze("../b_better_hurry.in.txt", "b_analyze.txt");
+
+	solve("../a_an_example.in.txt", "a_semenar.txt", 8, 15, 5);
+	solve("../b_better_hurry.in.txt", "b_semenar.txt", 2000, 20, 100);
+	solve("../c_carousel.in.txt", "c_semenar.txt", 10000, 4, 100);
+	solve("../d_decorated_houses.in.txt", "d_semenar.txt", 1000, 100, 100);
+	solve("../e_excellent_weather.in.txt", "e_semenar.txt", 16000, 10, 100);
+	solve("../f_festive_flyover.in.txt", "f_semenar.txt", 10000, 4, 100);
 
 	return 0;
 }
