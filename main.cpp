@@ -159,6 +159,40 @@ struct interactor
 	explicit interactor(const problem &prb) : prb(prb), gss(prb.gifts.size(), Unloaded)
 	{}
 
+	explicit interactor(const problem &prb, const solution &base) : prb(prb), gss(prb.gifts.size(), Unloaded)
+	{
+		for (auto [acc, val]: base.moves)
+		{
+			switch (acc)
+			{
+				case AccLeft:
+					acc_left(val);
+					break;
+				case AccUp:
+					acc_up(val);
+					break;
+				case AccDown:
+					acc_down(val);
+					break;
+				case AccRight:
+					acc_right(val);
+					break;
+				case Float:
+					idle(val);
+					break;
+				case LoadCarrots:
+					load_carrots(val);
+					break;
+				case LoadGift:
+					load_gift(val);
+					break;
+				case DeliverGift:
+					deliver_gift(val);
+					break;
+			}
+		}
+	}
+
 	void acc_left(int val)
 	{
 		slv.moves.emplace_back(AccLeft, val);
