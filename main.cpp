@@ -269,6 +269,8 @@ struct interactor
 
 	void load_carrots(int val)
 	{
+		if (!prb.check_distance(pos, pnt{}))
+			throw runtime_error("Distance to zero fail");
 		slv.moves.emplace_back(LoadCarrots, val);
 		weight += val;
 		carrots += val;
