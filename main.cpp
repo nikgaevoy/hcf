@@ -84,7 +84,7 @@ struct solution
 {
 	vector<pair<action, int>> moves;
 
-	void write(problem &prb, ostream &cout = std::cout)
+	void write(const problem &prb, ostream &cout = std::cout)
 	{
 		cout << moves.size() << endl;
 
@@ -98,6 +98,47 @@ struct solution
 				cout << val << endl;
 		}
 	}
+
+	solution()
+	{}
+
+	solution(const problem &prb, istream &cin)
+	{
+		read(prb, cin);
+	}
+
+
+	void read(const problem &prb, istream &cin = std::cin)
+	{
+		int n;
+
+		cin >> n;
+
+		moves.resize(n);
+
+		for (auto &[acc, val]: moves)
+		{
+			string a;
+
+			cin >> a;
+
+			acc = action(find(action_names.begin(), action_names.end(), string_view{a}) - action_names.begin());
+
+			if (int(acc) == action_names.size())
+				throw runtime_error("Bad file format");
+
+			if (acc == LoadGift || acc == DeliverGift)
+			{
+				string b;
+
+				cin >> b;
+
+				val = prb.who.at(b);
+			}
+			else
+				cin >> val;
+		}
+	}
 };
 
 
@@ -107,7 +148,7 @@ struct interactor
 	{
 		Unloaded = 0, Loaded, Delivered
 	};
-	problem &prb;
+	const problem &prb;
 	solution slv;
 	vector<gift_status> gss;
 	pnt pos, vel;
@@ -115,7 +156,7 @@ struct interactor
 	ll score = 0;
 	int cur_time = 0;
 
-	explicit interactor(problem &prb) : prb(prb), gss(prb.gifts.size(), Unloaded)
+	explicit interactor(const problem &prb) : prb(prb), gss(prb.gifts.size(), Unloaded)
 	{}
 
 	void acc_left(int val)
