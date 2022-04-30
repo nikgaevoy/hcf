@@ -1,9 +1,304 @@
 #include <iostream>
+#include <vector>
+#include <numeric>
+#include <string>
+#include <set>
+#include <fstream>
+
+using ll = long long;
+using ld = long double;
 
 using namespace std;
 
+struct AccelerationRange {
+	ll min_w;
+	ll max_w;
+	ll speed;
+
+	AccelerationRange(ll w = -1) {
+		min_w = w;
+		max_w = numeric_limits<ll>().max();
+		speed = 0;
+	}
+
+	bool in_range(ll w) {
+		return min_w < w && w <= max_w;
+	}
+};
+
+struct AccelerationRanges {
+	vector<AccelerationRange> accel;
+
+	AccelerationRanges() {
+		accel.push_back(AccelerationRange());
+	}
+
+	void insert_range(ll w, ll s) {
+		accel.back().max_w = w;
+		accel.back().speed = s;
+		accel.push_back(AccelerationRange(w));
+	}
+
+	ll get_speed(ll w) {
+		for (auto r : accel) {
+			if (r.in_range(w)) {
+				return r.speed;
+			}
+		}
+	}
+};
+
+struct Point {
+	ll x, y;
+
+	Point(ll pos_x = 0, ll pos_y = 0) {
+		x = pos_x;
+		y = pos_y;
+	}
+};
+
+Point operator+(const Point& a, const Point& b) {
+	return Point(a.x + b.x, a.y + b.y);
+}
+
+Point operator-(const Point& a, const Point& b) {
+	return Point(a.x - b.x, a.y - b.y);
+}
+
+Point operator*(const Point& a, ll b) {
+	return Point(a.x * b, a.y * b);
+}
+
+Point operator*(ll b, const Point& a) {
+	return a * b;
+}
+
+istream& operator>>(istream& in, Point& a) {
+	return in >> a.x >> a.y;
+}
+
+ld dist(const Point& a, const Point& b) {
+	return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
+}
+
+ld manhattan_dist(const Point& a, const Point& b) {
+	return abs(a.x - b.x) + abs(a.y - b.y);
+}
+
+ld delivery_score(Point cur_pos, Point delivery_pos, ll score, ll wt) {
+	return score * 1.0 / (wt * manhattan_dist(cur_pos, delivery_pos));
+}
+
+void naive_move(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_left, Point& start_pos, const Point& end_pos, ll accel = 100) {
+	if (start_pos.x + accel <= end_pos.x) {
+		commands.emplace_back("AccRight", accel);
+		commands.emplace_back("Float", (end_pos.x - start_pos.x) / accel);
+		time_left -= (end_pos.x - start_pos.x) / accel;
+		carrots_left -= 1;
+		start_pos.x += ((end_pos.x - start_pos.x) / accel) * accel;
+		commands.emplace_back("AccLeft", accel - (end_pos.x - start_pos.x));
+		commands.emplace_back("Float", 1);
+		time_left -= 1;
+		carrots_left -= 1;
+		if (start_pos.x != end_pos.x) {
+			commands.emplace_back("AccLeft", end_pos.x - start_pos.x);
+			commands.emplace_back("Float", 1);
+			time_left -= 1;
+			carrots_left -= 1;
+		}
+		start_pos.x = end_pos.x;
+	}
+
+	if (start_pos.y + accel <= end_pos.y) {
+		commands.emplace_back("AccUp", accel);
+		commands.emplace_back("Float", (end_pos.y - start_pos.y) / accel);
+		time_left -= (end_pos.y - start_pos.y) / accel;
+		carrots_left -= 1;
+		start_pos.y += ((end_pos.y - start_pos.y) / accel) * accel;
+		commands.emplace_back("AccDown", accel - (end_pos.y - start_pos.y));
+		commands.emplace_back("Float", 1);
+		time_left -= 1;
+		carrots_left -= 1;
+		if (start_pos.y != end_pos.y) {
+			commands.emplace_back("AccDown", end_pos.y - start_pos.y);
+			commands.emplace_back("Float", 1);
+			time_left -= 1;
+			carrots_left -= 1;
+		}
+		start_pos.y = end_pos.y;
+	}
+
+	if (start_pos.x - accel >= end_pos.x) {
+		commands.emplace_back("AccLeft", accel);
+		commands.emplace_back("Float", (start_pos.x - end_pos.x) / accel);
+		time_left -= (start_pos.x - end_pos.x) / accel;
+		carrots_left -= 1;
+		start_pos.x -= ((start_pos.x - end_pos.x) / accel) * accel;
+		commands.emplace_back("AccRight", accel - (start_pos.x - end_pos.x));
+		commands.emplace_back("Float", 1);
+		time_left -= 1;
+		carrots_left -= 1;
+		if (start_pos.x != end_pos.x) {
+			commands.emplace_back("AccRight", start_pos.x - end_pos.x);
+			commands.emplace_back("Float", 1);
+			time_left -= 1;
+			carrots_left -= 1;
+		}
+		start_pos.x = end_pos.x;
+	}
+
+	if (start_pos.y - accel >= end_pos.y) {
+		commands.emplace_back("AccDown", accel);
+		commands.emplace_back("Float", (start_pos.y - end_pos.y) / accel);
+		time_left -= (start_pos.y - end_pos.y) / accel;
+		carrots_left -= 1;
+		start_pos.y -= ((start_pos.y - end_pos.y) / accel) * accel;
+		commands.emplace_back("AccUp", accel - (start_pos.y - end_pos.y));
+		commands.emplace_back("Float", 1);
+		time_left -= 1;
+		carrots_left -= 1;
+		if (start_pos.y != end_pos.y) {
+			commands.emplace_back("AccUp", start_pos.y - end_pos.y);
+			commands.emplace_back("Float", 1);
+			time_left -= 1;
+			carrots_left -= 1;
+		}
+		start_pos.y = end_pos.y;
+	}
+
+	if (start_pos.x < end_pos.x) {
+		commands.emplace_back("AccRight", end_pos.x - start_pos.x);
+		commands.emplace_back("Float", 1);
+		commands.emplace_back("AccLeft", end_pos.x - start_pos.x);
+		commands.emplace_back("Float", 1);
+		time_left -= 2;
+		carrots_left -= 2;
+		start_pos.x = end_pos.x;
+	}
+
+	if (start_pos.y < end_pos.y) {
+		commands.emplace_back("AccUp", end_pos.y - start_pos.y);
+		commands.emplace_back("Float", 1);
+		commands.emplace_back("AccDown", end_pos.y - start_pos.y);
+		commands.emplace_back("Float", 1);
+		time_left -= 2;
+		carrots_left -= 2;
+		start_pos.y = end_pos.y;
+	}
+
+	if (start_pos.x > end_pos.x) {
+		commands.emplace_back("AccLeft", start_pos.x - end_pos.x);
+		commands.emplace_back("Float", 1);
+		commands.emplace_back("AccRight", start_pos.x - end_pos.x);
+		commands.emplace_back("Float", 1);
+		time_left -= 2;
+		carrots_left -= 2;
+		start_pos.x = end_pos.x;
+	}
+
+	if (start_pos.y > end_pos.y) {
+		commands.emplace_back("AccDown", start_pos.y - end_pos.y);
+		commands.emplace_back("Float", 1);
+		commands.emplace_back("AccUp", start_pos.y - end_pos.y);
+		commands.emplace_back("Float", 1);
+		time_left -= 2;
+		carrots_left -= 2;
+		start_pos.y = end_pos.y;
+	}
+}
+
 int main() {
-	cout << "Test" << endl;
+	ifstream fin("../d_decorated_houses.in.txt");
+	ofstream fout("d_semenar.txt");
+
+	ll T, D, W, G;
+	fin >> T >> D >> W >> G;
+
+	AccelerationRanges accel;
+
+	for (int i = 0; i < W; i++) {
+		ll w, s;
+		fin >> w >> s;
+		accel.insert_range(w, s);
+	}
+
+	vector<string> names(G);
+	vector<ll> score(G);
+	vector<ll> wt(G);
+	vector<Point> loc(G);
+
+	for (int i = 0; i < G; i++) {
+		fin >> names[i] >> score[i] >> wt[i] >> loc[i];
+	}
+	
+	// D 
+
+	ll best_score = 0;
+
+	ll carrot_quota = 100;
+
+	ll current_carrots = 0;
+	Point pos;
+
+	vector<bool> delivered(G);
+	ll time_left = T;
+	vector<pair<string, int>> commands;
+
+	while (time_left > 0) {
+		ll free_wt = 1000 - carrot_quota;
+		if (current_carrots < carrot_quota) {
+			commands.emplace_back("LoadCarrots", carrot_quota - current_carrots);
+			current_carrots = carrot_quota;
+		}
+
+		vector<pair<string, int>> temp_commands;
+
+		while (free_wt > 0) {
+			int best_delivery = -1;
+			ld best_delivery_score = -1;
+			for (int i = 0; i < G; i++) {
+				if (!delivered[i] && wt[i] <= free_wt && delivery_score(pos, loc[i], score[i], wt[i]) > best_delivery_score) {
+					best_delivery = i;
+					best_delivery_score = delivery_score(pos, loc[i], score[i], wt[i]);
+				}
+			}
+			if (best_delivery == -1) break;
+			vector<pair<string, int>> temp_temp_commands;
+			naive_move(temp_temp_commands, time_left, current_carrots, pos, loc[best_delivery]);
+			if (time_left < 0) break;
+			for (auto c : temp_temp_commands) {
+				temp_commands.push_back(c);
+			}
+
+			commands.emplace_back("LoadGift", best_delivery);
+			temp_commands.emplace_back("DeliverGift", best_delivery);
+			free_wt -= wt[best_delivery];
+			best_score += score[best_delivery];
+			delivered[best_delivery] = true;
+		}
+
+		if (free_wt == 1000 - carrot_quota) break;
+
+		for (auto c : temp_commands) {
+			commands.push_back(c);
+		}
+		temp_commands.clear();
+		naive_move(temp_commands, time_left, current_carrots, pos, Point());
+		if (time_left < 0) break;
+		for (auto c : temp_commands) {
+			commands.push_back(c);
+		}
+
+	}
+
+	cout << best_score << endl;
+	fout << commands.size() << endl;
+	for (auto c : commands) {
+		fout << c.first << ' ';
+		if (c.first == "LoadGift" || c.first == "DeliverGift") fout << names[c.second] << endl;
+		else fout << c.second << endl;
+	}
+
 
 	return 0;
 }
