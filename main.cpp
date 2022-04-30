@@ -111,8 +111,11 @@ struct interactor
 	solution slv;
 	vector<gift_status> gss;
 	pnt pos, vel;
-	int weight, carrots;
-	ll score;
+	int weight = 0, carrots = 0;
+	ll score = 0;
+
+	explicit interactor(problem &prb) : prb(prb), gss(prb.gifts.size(), Unloaded)
+	{}
 
 	void acc_left(int val)
 	{
