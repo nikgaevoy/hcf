@@ -90,8 +90,8 @@ ld manhattan_dist(const Point& a, const Point& b) {
 
 ll naive_move_coord(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_left, ll diff, string move_right, string move_left, ll accel, ll D) {
 	if (diff < 0) return -naive_move_coord(commands, time_left, carrots_left, -diff, move_left, move_right, accel, D);
-	ll mass_effect = diff - max(0LL, diff - D / 2);
-	diff = max(0LL, diff - D / 2);
+	ll mass_effect = diff - max(0., diff - floor(D / sqrt(2)));
+	diff = max(0., diff - floor(D / sqrt(2)));
 	if (diff == 0) return mass_effect;
 	if (diff > 4 * accel) {
 		ll dist_sqrt = 0;

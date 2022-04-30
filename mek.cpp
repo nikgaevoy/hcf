@@ -201,44 +201,55 @@ int main()
 
 	problem prb(ex);
     interactor inter(prb);
-    vector<problem::gift> on_diag;
-    ll score = 0;
-    ll weight = 0;
-    int cnt = 0;
-    for (problem::gift g : prb.gifts) {
-        int mid = (g.pos.imag() + g.pos.real()) / 2;
-        int dx = mid - g.pos.real();
-        int dy = mid - g.pos.imag() + 1;
-        if (dx * dx + dy * dy <= 9) {
-            on_diag.push_back(g);
-        }
-    }
-    sort(on_diag.begin(), on_diag.end(), [](auto &a, auto &b) {
-        return a.score * b.weight  > b.score * a.weight;
-    });
-    inter.load_carrots(2);
-    vector<int> taken(on_diag.size());
-    for (int i = 0; i < on_diag.size(); i++) {
-        if (inter.weight + on_diag[i].weight <= 40000) {
-            inter.load_gift(on_diag[i].id);
-            taken[i] = 1;
-        }
-    }
+    inter.load_carrots(4);
     inter.acc_up(1);
     inter.idle(1);
     inter.acc_right(1);
-    int total = 2;
+    int g = prb.gifts.size();
+    vector<int> taken(g);
+    const int KEK = 180;
+    for (int i = 0; i < g; i++) {
+        bool ok = false;
+        for (int j = 1; j <= KEK; j++)
+            ok |= prb.check_distance(prb.gifts[i].pos, {j, j - 1});
+        if (ok) {
+            inter.load_gift(i);
+            taken[i] = 1;
+        }
+    }
+    int total = 1;
+    while (inter.pos.real() < KEK) {
+        inter.idle(1);
+        total += 1;
+        for (int i = 0; i < prb.gifts.size(); i++) {
+            if (taken[i] == 1 && prb.check_distance(prb.gifts[i].pos, inter.pos)) {
+                taken[i] = -1;
+                inter.deliver_gift(i);
+            }
+        }
+    }
+    inter.acc_down(2);
+    inter.idle(1);
+    inter.acc_left(2);
+    total += 1;
     while (total < prb.tl) {
         inter.idle(1);
         total += 1;
-        for (int i = 0; i < on_diag.size(); i++) {
-            if (taken[i] && prb.check_distance(on_diag[i].pos, inter.pos)) {
-                taken[i] = 0;
-                inter.deliver_gift(on_diag[i].id);
+        if (prb.check_distance(inter.pos, {0, 0}))
+            for (int i = 0; i < prb.gifts.size(); i++)
+                if (taken[i] == 0) {
+                    inter.load_gift(i);
+                    taken[i] = 1;
+                }
+        for (int i = 0; i < prb.gifts.size(); i++) {
+            if (taken[i] == 1 && prb.check_distance(prb.gifts[i].pos, inter.pos)) {
+                taken[i] = -1;
+                inter.deliver_gift(i);
             }
         }
     }
     cerr << inter.get_score() << endl;
+    
     inter.write(cout);
 	return 0;
 }
