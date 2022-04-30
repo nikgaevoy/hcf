@@ -177,6 +177,7 @@ struct interactor
 			throw runtime_error("Gift deliver fail");
 		if (!prb.check_distance(prb.gifts[id].pos, pos))
 			throw runtime_error("Distance to delivery fail");
+		slv.moves.emplace_back(DeliverGift, id);
 		weight -= prb.gifts[id].weight;
 		score += prb.gifts[id].score;
 		gss[id] = Delivered;
