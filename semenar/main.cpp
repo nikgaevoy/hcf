@@ -10,6 +10,8 @@ using ld = long double;
 
 using namespace std;
 
+ofstream logout("log.txt");
+
 struct AccelerationRange {
 	ll min_w;
 	ll max_w;
@@ -207,9 +209,17 @@ void naive_move(vector<pair<string, int>>& commands, ll& time_left, ll& carrots_
 	}
 }
 
-int main() {
-	ifstream fin("../d_decorated_houses.in.txt");
-	ofstream fout("d_semenar.txt");
+ll move_carrot_cost(Point start_pos, Point end_pos, ll accel) {
+	ll carrots = 0;
+	ll time_left = 0;
+	vector<pair<string, int>> commands;
+	naive_move(commands, time_left, carrots, start_pos, end_pos, accel);
+	return -carrots;
+}
+
+void solve(string in_file, string out_file, ll sleight_weight, ll max_accel, ll carrot_quota) {
+	ifstream fin(in_file);
+	ofstream fout(out_file);
 
 	ll T, D, W, G;
 	fin >> T >> D >> W >> G;
@@ -230,12 +240,8 @@ int main() {
 	for (int i = 0; i < G; i++) {
 		fin >> names[i] >> score[i] >> wt[i] >> loc[i];
 	}
-	
-	// D 
 
 	ll best_score = 0;
-
-	ll carrot_quota = 100;
 
 	ll current_carrots = 0;
 	Point pos;
@@ -245,11 +251,7 @@ int main() {
 	vector<pair<string, int>> commands;
 
 	while (time_left > 0) {
-		ll free_wt = 1000 - carrot_quota;
-		if (current_carrots < carrot_quota) {
-			commands.emplace_back("LoadCarrots", carrot_quota - current_carrots);
-			current_carrots = carrot_quota;
-		}
+		ll free_wt = sleight_weight - carrot_quota;
 
 		vector<pair<string, int>> temp_commands;
 
@@ -257,14 +259,15 @@ int main() {
 			int best_delivery = -1;
 			ld best_delivery_score = -1;
 			for (int i = 0; i < G; i++) {
-				if (!delivered[i] && wt[i] <= free_wt && delivery_score(pos, loc[i], score[i], wt[i]) > best_delivery_score) {
+				if (!delivered[i] && wt[i] + move_carrot_cost(pos, loc[i], max_accel) <= free_wt && delivery_score(pos, loc[i], score[i], wt[i]) > best_delivery_score) {
 					best_delivery = i;
 					best_delivery_score = delivery_score(pos, loc[i], score[i], wt[i]);
 				}
 			}
 			if (best_delivery == -1) break;
+			free_wt -= wt[best_delivery] + move_carrot_cost(pos, loc[best_delivery], max_accel);
 			vector<pair<string, int>> temp_temp_commands;
-			naive_move(temp_temp_commands, time_left, current_carrots, pos, loc[best_delivery]);
+			naive_move(temp_temp_commands, time_left, current_carrots, pos, loc[best_delivery], max_accel);
 			if (time_left < 0) break;
 			for (auto c : temp_temp_commands) {
 				temp_commands.push_back(c);
@@ -272,33 +275,48 @@ int main() {
 
 			commands.emplace_back("LoadGift", best_delivery);
 			temp_commands.emplace_back("DeliverGift", best_delivery);
-			free_wt -= wt[best_delivery];
 			best_score += score[best_delivery];
 			delivered[best_delivery] = true;
 		}
 
-		if (free_wt == 1000 - carrot_quota) break;
+		if (free_wt == sleight_weight - carrot_quota) break;
+
+		commands.emplace_back("LoadCarrots", - current_carrots + carrot_quota);
+		current_carrots = carrot_quota;
 
 		for (auto c : temp_commands) {
 			commands.push_back(c);
 		}
 		temp_commands.clear();
-		naive_move(temp_commands, time_left, current_carrots, pos, Point());
+
+		naive_move(temp_commands, time_left, current_carrots, pos, Point(), max_accel);
 		if (time_left < 0) break;
 		for (auto c : temp_commands) {
 			commands.push_back(c);
 		}
 
+		if (current_carrots < 0) cout << "Not enough carrots!" << endl;
+
 	}
 
-	cout << best_score << endl;
+	logout << best_score << endl;
 	fout << commands.size() << endl;
 	for (auto c : commands) {
 		fout << c.first << ' ';
 		if (c.first == "LoadGift" || c.first == "DeliverGift") fout << names[c.second] << endl;
 		else fout << c.second << endl;
 	}
+}
 
+
+
+int main() {
+	//solve("../a_an_example.in.txt", "a_semenar.txt", 8, 15, 5);
+	//solve("../b_better_hurry.in.txt", "b_semenar.txt", 2000, 20, 10);
+	solve("../c_carousel.in.txt", "c_semenar.txt", 10000, 4, 10);
+	solve("../d_decorated_houses.in.txt", "d_semenar.txt", 1000, 100, 10);
+	solve("../e_excellent_weather.in.txt", "e_semenar.txt", 16000, 10, 10);
+	solve("../f_festive_flyover.in.txt", "f_semenar.txt", 10000, 4, 10);
 
 	return 0;
 }
