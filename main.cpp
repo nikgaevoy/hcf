@@ -86,7 +86,7 @@ struct Solution
 			cout << action_names[act] << ' ';
 
 			if (act == LoadGift || act == DeliverGift)
-				cout << prb[names[val]] << endl;
+				cout << prb.names[val] << endl;
 			else
 				cout << val << endl;
 		}
